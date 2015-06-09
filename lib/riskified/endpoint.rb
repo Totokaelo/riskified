@@ -45,7 +45,10 @@ module Riskified
     #
     def checkout_denied(checkout_id, authorization_error)
       execute 'api/checkout_denied',
-        build_json({ id: checkout_id, authorization_error: authorization_error }
+        build_json({
+          id: checkout_id,
+          authorization_error: authorization_error
+        })
     end
 
     # Send a new order to Riskified.
