@@ -1,6 +1,7 @@
 require 'openssl'
-require 'curl'
+require 'net/http'
 require 'json'
+
 require 'riskified/response'
 
 module Riskified
@@ -15,18 +16,24 @@ module Riskified
     # request_body: prebuilt json eg '{ order: { /* ... */ } }
     #
     def execute(endpoint_path, request_body)
-      request_url = "#{@endpoint_url}/#{endpoint_path}"
+      request_uri = URI("#{@endpoint_url}/#{endpoint_path}")
+      request = Net::HTTP::Post.new(request_uri)
+      request.body = request_body
 
-      curl_response = Curl.post(request_url, request_body) do |http|
-        standard_headers.each { |k,v| http.headers[k] = v }
+      standard_headers.each do |k,v|
+        request[k] = v
+      end
 
-        hashed_request_body = OpenSSL::HMAC.hexdigest('sha256', @auth_token, request_body)
-        http.headers['X_RISKIFIED_HMAC_SHA256'] = hashed_request_body
+      hashed_request_body = OpenSSL::HMAC.hexdigest('sha256', @auth_token, request_body)
+      request['X_RISKIFIED_HMAC_SHA256'] = hashed_request_body
+
+      http_response = Net::HTTP.start(request_uri.host, request_uri.port, use_ssl: true) do |http|
+        http.request(request)
       end
 
       riskified_response = Riskified::Response.new(
-        status_code: curl_response.status.scan(/\d+/).first.to_i,
-        data: JSON.parse(curl_response.body)
+        status_code: http_response.code,
+        data: JSON.parse(http_response.body)
       )
 
       return riskified_response
