@@ -45,7 +45,7 @@ module Riskified
             data: JSON.parse(http_response.body)
           )
         rescue JSON::ParserError => e
-          Riskified::Response.new(status_code: response_code)
+          Riskified::Response.new(status_code: response_code, message: 'JSON Parse Error')
         end
       else
         Riskified::Response.new(status_code: response_code)
