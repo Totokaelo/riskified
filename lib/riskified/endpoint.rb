@@ -10,7 +10,7 @@ module Riskified
       @endpoint_url = endpoint_url
       @auth_token = auth_token
       @shop_domain = shop_domain
-      @debug = false
+      @debug = debug
     end
 
     # endpoint_path: eg 'api/create'
@@ -22,7 +22,7 @@ module Riskified
       request.body = request_body
 
       if @debug
-        puts "\t#{request_uri} with \n\r#{request.body}"
+        puts "\t#{request_uri} with \n\r#{request_body}"
       end
 
       standard_headers.each do |k,v|
