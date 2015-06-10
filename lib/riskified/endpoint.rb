@@ -36,10 +36,21 @@ module Riskified
         http.request(request)
       end
 
-      riskified_response = Riskified::Response.new(
-        status_code: http_response.code,
-        data: JSON.parse(http_response.body)
-      )
+      response_code = http_response.code
+
+
+      riskified_response = if response_code < 500
+        begin
+          Riskified::Response.new(
+            status_code: response_code,
+            data: JSON.parse(http_response.body)
+          )
+        rescue JSON::ParserError => e
+          Riskified::Response.new(status_code: response_code)
+        end
+      else
+        Riskified::Response.new(status_code: response_code)
+      end
 
       return riskified_response
     end
