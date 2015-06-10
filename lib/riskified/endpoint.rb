@@ -6,10 +6,11 @@ require 'riskified/response'
 
 module Riskified
   class Endpoint
-    def initialize(endpoint_url:, auth_token:, shop_domain:)
+    def initialize(endpoint_url:, auth_token:, shop_domain:, debug: false)
       @endpoint_url = endpoint_url
       @auth_token = auth_token
       @shop_domain = shop_domain
+      @debug = false
     end
 
     # endpoint_path: eg 'api/create'
@@ -19,6 +20,10 @@ module Riskified
       request_uri = URI("#{@endpoint_url}/#{endpoint_path}")
       request = Net::HTTP::Post.new(request_uri)
       request.body = request_body
+
+      if @debug
+        puts "\t#{request_uri} with \n\r#{request.body}"
+      end
 
       standard_headers.each do |k,v|
         request[k] = v
@@ -45,7 +50,9 @@ module Riskified
     #
     def checkout_create(checkout)
       execute 'api/checkout_create',
-        build_json(checkout)
+        build_json({
+          checkout: checkout
+        })
     end
 
     # Alert that a checkout was denied authorization.
@@ -64,7 +71,9 @@ module Riskified
     #
     def order_create(order)
       execute 'api/create',
-        build_json(order)
+        build_json({
+          order: order
+        })
     end
 
     # Submit a new or existing order to Riskified for review.
@@ -72,7 +81,9 @@ module Riskified
     #
     def order_submit(order)
       execute 'api/submit',
-        build_json(order)
+        build_json({
+          order: order
+        })
     end
 
     # Update details of an existing order.
@@ -81,7 +92,9 @@ module Riskified
     #
     def order_update(order)
       execute 'api/update',
-        build_json(order)
+        build_json({
+          order: order
+        })
     end
 
     # Mark a previously submitted order as cancelled.
