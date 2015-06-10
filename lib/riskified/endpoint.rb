@@ -36,8 +36,7 @@ module Riskified
         http.request(request)
       end
 
-      response_code = http_response.code
-
+      response_code = http_response.code.to_i
 
       riskified_response = if response_code < 500
         begin
