@@ -2,6 +2,7 @@ require 'openssl'
 require 'net/http'
 require 'json'
 
+require 'riskified/hash'
 require 'riskified/response'
 
 module Riskified
@@ -29,8 +30,7 @@ module Riskified
         request[k] = v
       end
 
-      hashed_request_body = OpenSSL::HMAC.hexdigest('sha256', @auth_token, request_body)
-      request['X_RISKIFIED_HMAC_SHA256'] = hashed_request_body
+      request['X_RISKIFIED_HMAC_SHA256'] = Riskified.hash(@auth_token, request_body)
 
       http_response = Net::HTTP.start(request_uri.host, request_uri.port, use_ssl: true) do |http|
         http.request(request)
@@ -53,7 +53,6 @@ module Riskified
 
       return riskified_response
     end
-
 
     # Creates a new checkout.
     # Should be called before attempting payment authorization and order creation.
@@ -113,7 +112,7 @@ module Riskified
     # full refund on any associated charges.
     # An order can only be cancelled during a relatively short time window after its creation.
     #
-    def order_cancel(order_id, cancel_reason, cancelled_at)
+    def order_cancel(order_id, cancel_reason, cancelled_at = Time.now)
       execute 'api/cancel',
         build_json({
           id: order_id,
